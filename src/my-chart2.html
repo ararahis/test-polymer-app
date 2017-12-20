@@ -1,0 +1,108 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+
+<dom-module id="my-chart2">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      .bar {
+        fill: steelblue;
+      }
+
+      .bar:hover {
+        fill: brown;
+      }
+
+      .axis--x path {
+        display: none;
+      }
+    </style>
+
+    <div class="card">
+      <div class="circle">2</div>
+      <h1>View Chart 2</h1>
+      <div id="chart"></div>
+    </div>
+  </template>
+
+  <script>
+
+      Polymer({
+          is: 'my-chart2',
+          properties: {
+              myItems: {
+                  type: Array,
+                  notify: true,
+                  reflectToAttribute: true
+              }
+          },
+          ready: function() {
+              var div = this.$$('#chart');
+              var _this = this;
+              document.querySelector('my-app').addEventListener('onCartDataLoad', function (e){
+                  var items = e.detail;
+                  if(items.length) _this.drawChart(items,div);
+              });
+              if(chartData.length) _this.drawChart(chartData,div);
+          },
+          drawChart: function(data,el) {
+              var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                  width = $(el).width() - margin.left - margin.right,
+                  height = 500 - margin.top - margin.bottom;
+
+              var svg = d3.select(el).append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom);
+
+              var x = d3.scaleBand().rangeRound([10, width]).padding(0.1),
+                  y = d3.scaleLinear().rangeRound([0,100]);
+
+              var g = svg.append("g")
+                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+                  x.domain(data.map(function(d) { return d.date; }));
+                  y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+              var yScale = d3.scaleLinear()
+                  .domain([-2, 5])
+                  .range([height, 10]);
+
+                  g.append("g")
+                      .attr("class", "axis axis--x")
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(d3.axisBottom(x));
+
+              g.append("g")
+                  .attr("class", "y axis")
+                  .call(d3.axisLeft(yScale));
+
+                  g.selectAll(".bar")
+                      .data(data)
+                      .enter().append("rect")
+                      .attr("class", "bar")
+                      .attr("x", function(d) { return x(d.date); })
+                      .attr("y", function(d) { return y(d.value); })
+                      .attr("width", x.bandwidth())
+                      .attr("height", function(d) { return height - y(d.value); });
+
+          }
+      });
+  </script>
+</dom-module>

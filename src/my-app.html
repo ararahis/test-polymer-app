@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
@@ -19,6 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
@@ -70,9 +72,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-drawer id="drawer" swipe-open="[[narrow]]">
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="view1" href="[[rootPath]]view1">View One</a>
-          <a name="view2" href="[[rootPath]]view2">View Two</a>
-          <a name="view3" href="[[rootPath]]view3">View Three</a>
+          <a name="chart1" href="/chart1">chart1</a>
+          <a name="chart2" href="/chart2">chart2</a>
+          <a name="table" href="/table">table</a>
         </iron-selector>
       </app-drawer>
 
@@ -91,9 +93,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <my-view1 name="view1"></my-view1>
-          <my-view2 name="view2"></my-view2>
-          <my-view3 name="view3"></my-view3>
+          <my-chart1 name="chart1"></my-chart1>
+          <my-chart2 name="chart2"></my-chart2>
+          <my-table name="table"></my-table>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -101,6 +103,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
+    var chartData = [];
+    var chartData2 = [];
     Polymer({
       is: 'my-app',
 
@@ -110,6 +114,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           reflectToAttribute: true,
           observer: '_pageChanged',
         },
+      },
+
+      created: function() {
+
+          var _this = this;
+
+          var url = "http://api.worldbank.org/countries/NOR/indicators/NY.GDP.MKTP.KD.ZG?per_page=30&MRV=30&format=jsonP&prefix=?";
+
+          // set some variable to host data
+          var arrayString = [],
+              year_list = [],
+              array_final = [],
+              array_final2 = [];
+
+          $.ajaxSetup({
+              async: false
+          });
+
+          $.getJSON(url, function (json) {
+
+              $.each(json[1], function (i, data) {
+                  // fill the date array
+                  year_list.push(data.date);
+                  // fill the string data array
+                  arrayString.push(data.value);
+              });
+
+              // querry send string that we need to convert into numbers
+              for (var i = 0; i < arrayString.length; i++) {
+                  if (arrayString[i] != null) {
+                      array_final.push({date:year_list[i],value:parseFloat(arrayString[i])})
+                      array_final2.push({y:parseFloat(arrayString[i])})
+                  } else {
+                      array_final.push(null)
+                      array_final2.push(null)
+                  }
+              }
+
+              chartData = array_final;
+              chartData2 = array_final2;
+              _this.fire('onCartDataLoad',array_final);
+              _this.fire('onCartDataLoad2',array_final2);
+          });
+
       },
 
       observers: [

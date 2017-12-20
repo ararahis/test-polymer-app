@@ -1,0 +1,115 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+
+<dom-module id="my-chart1">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      .line {
+        fill: none;
+        stroke: #ffab00;
+        stroke-width: 3;
+      }
+      .dot {
+        fill: #ffab00;
+        stroke: #fff;
+      }
+    </style>
+
+    <div class="card">
+      <div class="circle">1</div>
+      <h1>View Chart 1</h1>
+      <div id="chart"></div>
+    </div>
+  </template>
+
+  <script>
+
+    Polymer({
+        is: 'my-chart1',
+        properties: {
+            myItems: {
+                type: Array,
+                notify: true,
+                reflectToAttribute: true
+            }
+        },
+        ready: function() {
+            var div = this.$$('#chart');
+            var _this = this;
+            document.querySelector('my-app').addEventListener('onCartDataLoad2', function (e){
+                var items = e.detail;
+                if(items.length) _this.drawChart(items,div);
+            });
+            if(chartData2.length) _this.drawChart(chartData2,div);
+        },
+        drawChart: function(data,el) {
+            var margin = {top: 50, right: 50, bottom: 50, left: 5}
+                , width = $(el).width() - margin.left - margin.right
+                , height = 300 - margin.top - margin.bottom;
+
+            var n = data.length;
+
+            var xScale = d3.scaleLinear()
+                .domain([0, n-1])
+                .range([0, width]);
+
+            var yScale = d3.scaleLinear()
+                .domain([-2, 5])
+                .range([height, 10]);
+
+            var line = d3.line()
+                .x(function(d, i) { return xScale(i); })
+                .y(function(d) { return yScale(d.y); })
+                .curve(d3.curveMonotoneX)
+
+            var dataset = data
+
+            var svg = d3.select(el).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(xScale));
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(d3.axisLeft(yScale));
+
+            svg.append("path")
+                .datum(dataset)
+                .attr("class", "line")
+                .attr("d", line);
+
+// 12. Appends a circle for each datapoint
+            svg.selectAll(".dot")
+                .data(dataset)
+                .enter().append("circle")
+                .attr("class", "dot")
+                .attr("cx", function(d, i) { return xScale(i) })
+                .attr("cy", function(d) { return yScale(d.y) })
+                .attr("r", 5);
+        }
+    });
+  </script>
+</dom-module>

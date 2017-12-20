@@ -1,0 +1,54 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="shared-styles.html">
+<dom-module id="my-table">
+    <!-- Defines the element's style and local DOM -->
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+
+                padding: 16px;
+            }
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+        </style>
+        <div class="card">
+            <div class="circle">3</div>
+        <h1>Table</h1>
+            <table>
+                <template  is="dom-repeat" items="{{myItems}}">
+                    <tr>
+                        <td>{{item.date}}</td>
+                        <td>{{item.value}}</td>
+                    </tr>
+                </template>
+            </table>
+        </div>
+    </template>
+    <!-- Creates the element's prototype and registers it -->
+    <script>
+
+        Polymer({
+            is: 'my-table',
+            properties: {
+                myItems: {
+                    type: Array,
+                    notify: true,
+                    reflectToAttribute: true
+                }
+            },
+            ready: function() {
+                var _this = this;
+                document.querySelector('my-app').addEventListener('onCartDataLoad', function (e){
+                    _this.myItems = e.detail;
+                    //console.log(e.detail);
+                })
+                _this.myItems = chartData;
+            }
+
+        });
+        </script>
+</dom-module>
